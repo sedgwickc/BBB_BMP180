@@ -21,6 +21,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 using namespace std;
@@ -106,10 +107,21 @@ void Adafruit_BMP180::read8(unsigned int reg, uint8_t *value)
 /**************************************************************************/
 void Adafruit_BMP180::read16(unsigned int reg, uint16_t *value)
 {
-	// 1 byte = 8 bits?
-	// therefore read two registers
-	unsigned char *ret = this->readRegisters((unsigned int) 2, (unsigned int) reg);
-	*value = (uint16_t) *ret;
+	uint16_t val = 0;
+	unsigned char lsb = 0;
+	unsigned char msb = 0;
+	
+	lsb = this->readRegister(reg);
+	msb = this->readRegister(reg+1);
+	val = lsb;
+	val <<= 8;
+	val |= msb;
+
+#ifdef DEBUG
+	cout<<"read16(): sizeof(val) = "<<sizeof(val)<<endl;
+	cout<<"read16(): val = "<<val<<endl;
+#endif
+	*value = val;
 }
 
 /**************************************************************************/
@@ -121,10 +133,21 @@ void Adafruit_BMP180::read16(unsigned int reg, uint16_t *value)
 /**************************************************************************/
 void Adafruit_BMP180::readS16(unsigned int reg, int16_t *value)
 {
-	// 1 byte = 8 bits?
-	// therefore read two registers
-	unsigned char *ret = this->readRegisters((unsigned int) 2, (unsigned int) reg);
-	*value = (int16_t) *ret;
+	int16_t val = 0;
+	unsigned char lsb = 0;
+	unsigned char msb = 0;
+	
+	lsb = this->readRegister(reg);
+	msb = this->readRegister(reg+1);
+	val = lsb;
+	val <<= 8;
+	val |= msb;
+
+#ifdef DEBUG
+	cout<<"readS16(): sizeof(val) = "<<sizeof(val)<<endl;
+	cout<<"readS16(): val = "<<val<<endl;
+#endif
+	*value = val;
 }
 
 /**************************************************************************/
@@ -160,6 +183,21 @@ void Adafruit_BMP180::readCoefficients(void)
     this->readS16(BMP180_REGISTER_CAL_MC, &_bmp180_coeffs.mc);
     this->readS16(BMP180_REGISTER_CAL_MD, &_bmp180_coeffs.md);
   #endif
+
+#ifdef DEBUG
+	cout<<"Coefficients:"<<endl;
+	cout<<"AC1 = "<<_bmp180_coeffs.ac1<<endl;
+	cout<<"AC2 = "<<_bmp180_coeffs.ac2<<endl;
+	cout<<"AC3 = "<<_bmp180_coeffs.ac3<<endl;
+	cout<<"AC4 = "<<_bmp180_coeffs.ac4<<endl;
+	cout<<"AC5 = "<<_bmp180_coeffs.ac5<<endl;
+	cout<<"AC6 = "<<_bmp180_coeffs.ac6<<endl;
+	cout<<"B1 = "<<_bmp180_coeffs.b1<<endl;
+	cout<<"B2 = "<<_bmp180_coeffs.b2<<endl;
+	cout<<"MB = "<<_bmp180_coeffs.mb<<endl;
+	cout<<"MC = "<<_bmp180_coeffs.mc<<endl;
+	cout<<"MD = "<<_bmp180_coeffs.md<<endl;
+#endif
 }
 
 /**************************************************************************/
@@ -199,7 +237,7 @@ void Adafruit_BMP180::readRawPressure(int32_t *pressure)
     uint16_t p16;
     int32_t  p32;
 
-    int  millisec = 5;
+    int  millisec;
     struct timespec rec = {0};
     rec.tv_sec = 0;
 
@@ -208,6 +246,7 @@ void Adafruit_BMP180::readRawPressure(int32_t *pressure)
     {
       case BMP180_MODE_ULTRALOWPOWER:
         //sleep(5);
+        millisec = 5;
     	rec.tv_nsec = millisec * 1000000L;
     	nanosleep(&rec, (struct timespec *) NULL);
         break;
@@ -237,6 +276,10 @@ void Adafruit_BMP180::readRawPressure(int32_t *pressure)
     this->read8(BMP180_REGISTER_PRESSUREDATA+2, &p8);
     p32 += p8;
     p32 >>= (8 - _bmp180Mode);
+
+#ifdef DEBUG
+	cout<<"readRawPressure(): p32 = "<<p32<<endl;
+#endif
     
     *pressure = p32;
   #endif
@@ -253,6 +296,10 @@ bool Adafruit_BMP180::begin(Adafruit_BMP180::bmp180_mode_t mode)
   if ((mode > BMP180_MODE_ULTRAHIGHRES) || (mode < 0))
   {
     mode = BMP180_MODE_ULTRAHIGHRES;
+#ifdef DEBUG
+	cout<<"begin(): mode = "<<mode<<endl;
+#endif
+	
   }
 
   /* Make sure we have the right device */
@@ -260,14 +307,14 @@ bool Adafruit_BMP180::begin(Adafruit_BMP180::bmp180_mode_t mode)
   this->read8(BMP180_REGISTER_CHIPID, &id);
   if(id != 0x55)
   {	
-  	cout<<"BMP180::begin(): wrong deivice"<<endl;
+  	cout<<"BMP180::begin(): wrong device"<<endl;
     return false;
   }
 
   /* Set the mode indicator */
   _bmp180Mode = mode;
 
-  /* Coefficients need to be read once */
+  /* Coefficients need to be read once for calibration*/
   this->readCoefficients();
   return true;
 }
@@ -286,6 +333,7 @@ void Adafruit_BMP180::getPressure(float *pressure)
   /* Get the raw pressure and temperature values */
   this->readRawTemperature(&ut);
   this->readRawPressure(&up);
+  cout<<"Raw Pressure: "<<up<<endl;
 
   /* Temperature compensation */
   b5 = computeB5(ut);
@@ -340,10 +388,13 @@ void Adafruit_BMP180::getTemperature(float *temp)
     _bmp180_coeffs.mc = -8711;
     _bmp180_coeffs.md = 2868;
   #endif
-
-  B5 = this->computeB5(UT);
+  B5 = computeB5(UT);
   t = (B5+8) >> 4;
   t /= 10;
+
+#ifdef DEBUG
+	cout<<"getTemperature(): Calibrated Temp = "<<t<<endl;
+#endif
 
   *temp = t;
 }
