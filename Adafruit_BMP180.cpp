@@ -1,4 +1,12 @@
 /***************************************************************************
+  This library is a port of Adafruit's BMP180 library for Arduino to the Beagle
+  Bone Black using Derek Molloy's I2CDevice library in the place of Wire.h to
+  communicate over I2C.
+
+  This port is written and maintained by Charles Sedgwick. 
+  This port retains the licence of the software it is based off of which is
+  described below.
+ ***************************************************************************
   This is a library for the BMP180 pressure sensor
 
   Designed specifically to work with the Adafruit BMP180 or BMP180 Breakout 
@@ -101,8 +109,9 @@ void Adafruit_BMP180::read8(unsigned int reg, uint8_t *value)
 
 /**************************************************************************/
 /*!
-    @brief  Reads a 16 bit value over I2C
-    check byte size on sensor and on BBB
+    @brief  Reads two 8bit values and combines them
+    Consider changing this to use Derek's readRegisters() instead of using two
+    reads and shifting. 
 */
 /**************************************************************************/
 void Adafruit_BMP180::read16(unsigned int reg, uint16_t *value)
@@ -118,7 +127,6 @@ void Adafruit_BMP180::read16(unsigned int reg, uint16_t *value)
 	val |= msb;
 
 #ifdef DEBUG
-	cout<<"read16(): sizeof(val) = "<<sizeof(val)<<endl;
 	cout<<"read16(): val = "<<val<<endl;
 #endif
 	*value = val;
