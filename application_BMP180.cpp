@@ -17,7 +17,7 @@ using namespace rover;
 int main() {
 
 	Adafruit_BMP180 BMP180(1,0x77);
-	if( BMP180.begin() == false)
+	if( BMP180.begin(BMP180_MODE_HIGHRES) == false)
 	{
 		std::cout<<"Could not find a valid BMP180!\n"<<std::flush;
 		return 0;

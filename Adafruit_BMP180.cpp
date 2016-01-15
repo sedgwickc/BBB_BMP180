@@ -33,7 +33,7 @@ using namespace std;
 
 namespace rover {
 
-Adafruit_BMP180::bmp180_calib_data _bmp180_coeffs;   // Last read accelerometer data will be available here
+bmp180_calib_data _bmp180_coeffs;   // Last read accelerometer data will be available here
 uint8_t           _bmp180Mode;
 
 #define BMP180_USE_DATASHEET_VALS (0) /* Set to 1 for sanity check */
@@ -73,7 +73,6 @@ short Adafruit_BMP180::combineRegisters(unsigned char msb, unsigned char lsb){
 Adafruit_BMP180::Adafruit_BMP180(unsigned int I2CBus, unsigned int I2CAddress){
 	this->i2c_bmp180 = new mraa::I2c(I2CBus);
 	this->I2CAddress = I2CAddress;
-	this->registers = NULL;
 	//this->resolution = ADXL345::HIGH;
 	//this->writeRegister(POWER_CTL, 0x08);
 	//this->updateRegisters();
@@ -315,7 +314,7 @@ void Adafruit_BMP180::readRawPressure(int32_t *pressure)
     @brief  Setups the HW
 */
 /**************************************************************************/
-bool Adafruit_BMP180::begin(Adafruit_BMP180::bmp180_mode_t mode)
+bool Adafruit_BMP180::begin(bmp180_mode_t mode)
 {
   /* Mode boundary check */
   if ((mode > BMP180_MODE_ULTRAHIGHRES) || (mode < 0))

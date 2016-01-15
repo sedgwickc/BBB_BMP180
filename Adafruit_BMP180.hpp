@@ -154,6 +154,5 @@ public:
 private:
 	mraa::I2c *i2c_bmp180;
 	unsigned int I2CAddress;
-	//registers;
 	}; //BMP180 class
 } // rover namespace
