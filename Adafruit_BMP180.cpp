@@ -1,7 +1,6 @@
 /***************************************************************************
   This library is a port of Adafruit's BMP180 library for Arduino to the Beagle
-  Bone Black using Derek Molloy's I2CDevice library in the place of Wire.h to
-  communicate over I2C.
+  Bone Black.
 
   This port is written and maintained by Charles Sedgwick. 
   This port retains the licence of the software it is based off of which is
@@ -13,8 +12,6 @@
   ----> http://www.adafruit.com/products/391
   ----> http://www.adafruit.com/products/1603
  
-  These displays use I2C to communicate, 2 pins are required to interface.
-
   Adafruit invests time and resources providing this open source code,
   please support Adafruit andopen-source hardware by purchasing products
   from Adafruit!
@@ -23,7 +20,7 @@
   BSD license, all text above must be included in any redistribution
  ***************************************************************************/
 
-#include "Adafruit_BMP180.h"
+#include "Adafruit_BMP180.hpp"
 #include <math.h>
 #include <limits.h>
 #include <iostream>
@@ -73,10 +70,9 @@ short Adafruit_BMP180::combineRegisters(unsigned char msb, unsigned char lsb){
     @brief  Instantiates a new Adafruit_BMP180 class
 */
 /**************************************************************************/
-Adafruit_BMP180::Adafruit_BMP180(unsigned int I2CBus, unsigned int I2CAddress):
-	I2CDevice(I2CBus, I2CAddress){   // this member initialisation list calls the parent constructor
+Adafruit_BMP180::Adafruit_BMP180(unsigned int I2CBus, unsigned int I2CAddress){
+	this->i2c_bmp180 = new mraa::I2c(I2CBus);
 	this->I2CAddress = I2CAddress;
-	this->I2CBus = I2CBus;
 	this->registers = NULL;
 	//this->resolution = ADXL345::HIGH;
 	//this->writeRegister(POWER_CTL, 0x08);
@@ -87,6 +83,27 @@ Adafruit_BMP180::Adafruit_BMP180(unsigned int I2CBus, unsigned int I2CAddress):
  PUBLIC FUNCTIONS
  ***************************************************************************/
 
+/**************************************************************************/
+/*!
+    @brief  Reads an 8 bit value over I2C using mraa
+*/
+/**************************************************************************/
+uint8_t Adafruit_BMP180::readRegister(unsigned int reg)
+{
+		this->i2c_bmp180->address(this->I2CAddress);
+		return (uint8_t)this->i2c_bmp180->readReg(reg);
+}
+
+/**************************************************************************/
+/*!
+    @brief  Writes an 8 bit value over I2C using mraa
+*/
+/**************************************************************************/
+void Adafruit_BMP180::writeRegister(unsigned int reg, unsigned char value)
+{
+	this->i2c_bmp180->address(this->I2CAddress);
+	this->i2c_bmp180->writeReg( reg, (uint8_t)value );
+}
 /**************************************************************************/
 /*!
     @brief  Writes an 8 bit value over I2C
@@ -490,7 +507,5 @@ float Adafruit_BMP180::seaLevelForAltitude(float altitude, float atmospheric, fl
 {
   return this->seaLevelForAltitude(altitude, atmospheric);
 }
-
-Adafruit_BMP180::~Adafruit_BMP180() {}
 
 } // bmp180 namespace
