@@ -71,7 +71,12 @@ short Adafruit_BMP180::combineRegisters(unsigned char msb, unsigned char lsb){
 */
 /**************************************************************************/
 Adafruit_BMP180::Adafruit_BMP180(unsigned int I2CBus, unsigned int I2CAddress){
-	this->i2c_bmp180 = new mraa::I2c(I2CBus);
+	this->i2c_bmp180 = new mraa::I2c(I2CBus, true);
+	mraa::Result retval = this->i2c_bmp180->address(I2CAddress);
+	/*if( retval != mraa::Result::SUCCESS ){
+		cerr<<"Unable to set address on sensor!\n"<<endl;
+	}*/
+		
 	this->I2CAddress = I2CAddress;
 	//this->resolution = ADXL345::HIGH;
 	//this->writeRegister(POWER_CTL, 0x08);
@@ -89,8 +94,9 @@ Adafruit_BMP180::Adafruit_BMP180(unsigned int I2CBus, unsigned int I2CAddress){
 /**************************************************************************/
 uint8_t Adafruit_BMP180::readRegister(unsigned int reg)
 {
-		this->i2c_bmp180->address(this->I2CAddress);
-		return (uint8_t)this->i2c_bmp180->readReg(reg);
+	// check return value!!	
+	this->i2c_bmp180->address(this->I2CAddress);
+	return (uint8_t)this->i2c_bmp180->readReg(reg);
 }
 
 /**************************************************************************/

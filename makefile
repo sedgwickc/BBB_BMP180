@@ -10,7 +10,7 @@ BMP:
 	$(LINK)
 
 BMP_debug:
-	$(GPP) $(CFLAGS) $(DEBUG) application_BMP180.cpp Adafruit_BMP180.cpp -o
+	$(GPP) $(CFLAGS) $(DEBUG) application_BMP180.cpp Adafruit_BMP180.cpp -o \
 	BMP180 $(LINK)
 
 clean:
